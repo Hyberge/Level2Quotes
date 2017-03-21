@@ -1,0 +1,20 @@
+﻿<Window x:Class="Level2Quotes.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <WebBrowser Name="Pin" Margin="156,215,176,10" LoadCompleted="Pin_LoadCompleted"></WebBrowser>
+        <TextBlock Text="账户" Margin="76,37,373,252"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        <TextBlock Text="密码" Margin="74,99,371,190" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        <TextBlock Text="验证码" Margin="74,160,371,132" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        <TextBox Name="UserID" Margin="156,35,176,250" VerticalContentAlignment="Center" Text=""/>
+        <PasswordBox Name="PassWD" Margin="156,97,176,188" VerticalContentAlignment="Center" Password=""/>
+        <TextBox Name="Verify" Margin="156,155,176,130" VerticalContentAlignment="Center"/>
+        <Button Name="Flush" Click="Flush_Click" Background="White" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="77,236,382,46" Height="37" Width="58">
+            <TextBlock Text="刷新" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        </Button>
+        <Button Name="Login" Content="登陆" FontSize="20" Margin="392,233,43,46" Click="Login_Click"/>
+        <Button x:Name="Test" Content="Test" FontSize="20" Margin="392,146,43,133" Click="Test_Click"/>
+        <Button x:Name="DownLoad" Content="下载" FontSize="20" Margin="392,86,43,193" Click="DownLoad_Click"/>
+    </Grid>
+</Window>
