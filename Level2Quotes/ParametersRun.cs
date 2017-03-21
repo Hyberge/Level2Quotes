@@ -25,13 +25,13 @@ namespace Level2Quotes
 
         private void AutoDownLoad(String Uid, String PassWD)
         {
-            if (DataCapture.StockCaptureManager.Instance().Login(Uid, PassWD, ""))
+            if (DataCapture.StockQuotesManager.Instance().Login(Uid, PassWD, ""))
             {
                 EMailSendTask Task2 = new EMailSendTask(null);
                 Task2.SetEmailContents("数据爬取报告", "主人:\r\n    任务结束!!!!");
 
                 SinaHistoryDataCaptureTask Task1 = new SinaHistoryDataCaptureTask(Task2);
-                Task1.AddSymbolsList(DataCapture.StockCaptureManager.Instance().GetAllSymbol());
+                Task1.AddSymbolsList(DataCapture.StockQuotesManager.Instance().GetAllSymbol());
 
                 EMailSendTask Task0 = new EMailSendTask(Task1);
                 Task0.SetEmailContents("数据爬取报告", "主人:\r\n    任务启动!!!!");

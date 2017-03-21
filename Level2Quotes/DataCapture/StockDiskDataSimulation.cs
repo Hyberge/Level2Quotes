@@ -7,10 +7,10 @@ using System.Threading;
 
 namespace Level2Quotes.DataCapture
 {
-    class StockDiskDataCapture
+    class StockDiskDataSimulation
     {
         List<int> mSymbols = null;
-        public StockDiskDataCapture(List<int> Symbols)
+        public StockDiskDataSimulation(List<int> Symbols)
         {
             mSymbols = Symbols;
         }

@@ -80,7 +80,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Common\SQLiteDataBase.cs" />
-    <Compile Include="DataCapture\StockDiskDataCapture.cs" />
+    <Compile Include="DataCapture\StockDiskDataSimulation.cs" />
     <Compile Include="DataMining\LinearRegression.cs" />
     <Compile Include="DataMining\TimeIntervalStatistics.cs" />
     <Compile Include="ParametersRun.cs" />
@@ -92,14 +92,14 @@
     <Compile Include="Common\Definition.cs" />
     <Compile Include="Common\RSA.cs" />
     <Compile Include="DataCapture\Sina.cs" />
-    <Compile Include="DataCapture\SinaStockCapture.cs" />
-    <Compile Include="DataCapture\StockCaptureManager.cs" />
+    <Compile Include="DataCapture\SinaStockSubscription.cs" />
+    <Compile Include="DataCapture\StockQuotesManager.cs" />
     <Compile Include="DataCapture\SinaStockHistoryCapture.cs" />
-    <Compile Include="Task\DiskDataCaptureTask.cs" />
+    <Compile Include="Task\DiskDataSimulationTask.cs" />
     <Compile Include="Task\EMailSendTask.cs" />
     <Compile Include="Task\DailyStatisticsTask.cs" />
     <Compile Include="Task\LinearRegressionTrainingTask.cs" />
-    <Compile Include="Task\SinaDataCaptureTask.cs" />
+    <Compile Include="Task\WhollyDataSubscriptionTask.cs" />
     <Compile Include="Task\SinaHistoryDataCaptureTask.cs" />
     <Compile Include="Task\TaskInterface.cs" />
     <Compile Include="Task\TimeIntervalStatisticsTask.cs" />

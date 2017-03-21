@@ -143,18 +143,18 @@ namespace Level2Quotes.DataCapture
             }
         }
 
-        public String GenerateQList(String Symbol, SinaL2DataType DataType)
+        public String GenerateQList(String Symbol, Level2DataType DataType)
         {
             String QList = String.Empty;
 
             // 3秒一条的Level2 10档行情
-            if ((DataType & SinaL2DataType.Quotation) != 0)
+            if ((DataType & Level2DataType.Quotation) != 0)
             {
                 QList += "2cn_" + Symbol;
             }
 
             // 逐笔数据
-            if ((DataType & SinaL2DataType.Transaction) != 0)
+            if ((DataType & Level2DataType.Transaction) != 0)
             {
                 if (QList != String.Empty)
                     QList += ",";
@@ -164,7 +164,7 @@ namespace Level2Quotes.DataCapture
             }
 
             // 挂单数据
-            if ((DataType & SinaL2DataType.Orders) != 0)
+            if ((DataType & Level2DataType.Orders) != 0)
             {
                 if (QList != String.Empty)
                     QList += ",";

@@ -8,15 +8,13 @@ using System.Threading;
 
 namespace Level2Quotes.Task
 {
-    class DiskDataCaptureTask: ITask
+    class WhollyDataSubscriptionTask: ITask
     {
-        int mPerThreadCount = 500;
-
-        DateTime mNeedDay = DateTime.Today;
+        int mPerThreadCount = 10;
 
         List<int> mSymbols = null;
 
-        public DiskDataCaptureTask(ITask Next): base(Next)
+        public WhollyDataSubscriptionTask(ITask Next): base(Next)
         { }
 
         public override bool TransactionProcessing()
@@ -35,11 +33,13 @@ namespace Level2Quotes.Task
 
                     Thread NewThread = new Thread(o =>
                     {
-                        DataCapture.StockDiskDataCapture Processer = DataCapture.StockCaptureManager.Instance().CreateStockDiskDataCapture(SubSymbols);
-                        Processer.SimulationCapture(mNeedDay);
-
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
+                        DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockCapture(SubSymbols);
+                        Capture.SetTerminationCondition(DataCapture.TerminationCondition.TC_MarketClosed);
+                        Capture.SetSubscriptionType(Level2DataType.Orders & Level2DataType.Quotation & Level2DataType.Transaction);
+                        Capture.SetDataDelegation(DataMining.DataHub.PushOrdersDataInHub,
+                                                  DataMining.DataHub.PushQuotationDataInHub,
+                                                  (int Symbol, List<TransactionData> Transaction) => { DataMining.DataHub.PushTransactionDataInHub(Symbol, Transaction, false); });
+                        Capture.ConnectToSina();
                     });
                     NewThread.Start();
 
@@ -72,11 +72,6 @@ namespace Level2Quotes.Task
         public void AddSymbolsList(List<int> Symbols)
         {
             mSymbols = Symbols;
-        }
-
-        public void SetNeededDay(DateTime Day)
-        {
-            mNeedDay = Day;
         }
 
         public void SetPerThreadCount(int Count)

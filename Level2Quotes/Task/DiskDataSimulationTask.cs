@@ -8,13 +8,15 @@ using System.Threading;
 
 namespace Level2Quotes.Task
 {
-    class SinaDataCaptureTask: ITask
+    class DiskDataSimulationTask: ITask
     {
-        int mPerThreadCount = 10;
+        int mPerThreadCount = 500;
+
+        DateTime mNeedDay = DateTime.Today;
 
         List<int> mSymbols = null;
 
-        public SinaDataCaptureTask(ITask Next): base(Next)
+        public DiskDataSimulationTask(ITask Next): base(Next)
         { }
 
         public override bool TransactionProcessing()
@@ -33,8 +35,11 @@ namespace Level2Quotes.Task
 
                     Thread NewThread = new Thread(o =>
                     {
-                        DataCapture.SinaStockCapture Capture = DataCapture.StockCaptureManager.Instance().CreateSinaStockCapture(SubSymbols);
-                        Capture.ConnectToSina();
+                        DataCapture.StockDiskDataSimulation Processer = DataCapture.StockQuotesManager.Instance().CreateStockDiskDataCapture(SubSymbols);
+                        Processer.SimulationCapture(mNeedDay);
+
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
                     });
                     NewThread.Start();
 
@@ -67,6 +72,11 @@ namespace Level2Quotes.Task
         public void AddSymbolsList(List<int> Symbols)
         {
             mSymbols = Symbols;
+        }
+
+        public void SetNeededDay(DateTime Day)
+        {
+            mNeedDay = Day;
         }
 
         public void SetPerThreadCount(int Count)

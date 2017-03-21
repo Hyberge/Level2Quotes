@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Level2Quotes.DataCapture
 {
-    class StockCaptureManager
+    class StockQuotesManager
     {
         bool mIsLogin = false;
 
@@ -18,16 +18,16 @@ namespace Level2Quotes.DataCapture
         List<String> mSymbols = new List<String>();
         List<int> mIntSymbols = new List<int>();
 
-        volatile static StockCaptureManager sInstance = null;
+        volatile static StockQuotesManager sInstance = null;
 
-        public static StockCaptureManager Instance() 
+        public static StockQuotesManager Instance() 
         {
             if (sInstance == null)
-                sInstance = new StockCaptureManager();
+                sInstance = new StockQuotesManager();
             return sInstance; 
         }
 
-        private StockCaptureManager()
+        private StockQuotesManager()
         {
         }
 
@@ -92,15 +92,15 @@ namespace Level2Quotes.DataCapture
             return mIntSymbols;
         }
 
-        public SinaStockCapture CreateSinaStockCapture(List<int> Symbols = null)
+        public SinaStockSubscription CreateSinaStockCapture(List<int> Symbols = null)
         {
             if (Symbols == null || Symbols.Count == 0)
             {
-            	return new SinaStockCapture(GetAllIntSymbol(), mSina);
+            	return new SinaStockSubscription(GetAllIntSymbol(), mSina);
             } 
             else
             {
-                return new SinaStockCapture(Symbols, mSina);
+                return new SinaStockSubscription(Symbols, mSina);
             }
         }
 
@@ -116,15 +116,15 @@ namespace Level2Quotes.DataCapture
             }
         }
 
-        public StockDiskDataCapture CreateStockDiskDataCapture(List<int> Symbols = null)
+        public StockDiskDataSimulation CreateStockDiskDataCapture(List<int> Symbols = null)
         {
             if (Symbols == null || Symbols.Count == 0)
             {
-                return new StockDiskDataCapture(GetAllIntSymbol());
+                return new StockDiskDataSimulation(GetAllIntSymbol());
             }
             else
             {
-                return new StockDiskDataCapture(Symbols);
+                return new StockDiskDataSimulation(Symbols);
             }
         }
     }

@@ -9,9 +9,21 @@ using System.Threading;
 
 namespace Level2Quotes.DataCapture
 {
-    class SinaStockCapture
+    enum TerminationCondition
     {
-        SinaL2DataType mSubscriptionType = SinaL2DataType.None;
+        TC_MarketClosed,
+        TC_OneSubscription,
+    }
+
+    delegate void OrderDataDelegation(int Symbol, OrdersData Orders);
+    delegate void QuotationDataDelegation(int Symbol, QuotationData Quotation);
+    delegate void TransactionDataDelegation(int Symbol, List<TransactionData> Transaction);
+
+    class SinaStockSubscription
+    {
+        Level2DataType mSubscriptionType = Level2DataType.None;
+
+        TerminationCondition mTerminationCondition = TerminationCondition.TC_MarketClosed;
 
         List<int> mSymbols = null;
 
@@ -34,25 +46,39 @@ namespace Level2Quotes.DataCapture
         QuotationData mQuotation = new QuotationData();
         List<TransactionData> mTransaction = new List<TransactionData>();
 
-        public SinaStockCapture(List<int> Symbols, SinaAPI Sina)
+        OrderDataDelegation mOrderDataDelegation = null;
+        QuotationDataDelegation mQuotationDataDelegation = null;
+        TransactionDataDelegation mTransactionDataDelegation = null;
+
+        public SinaStockSubscription(List<int> Symbols, SinaAPI Sina)
         {
             mSymbols = Symbols;
             mSina = Sina;
         }
 
-        public void SetSubscriptionType(SinaL2DataType DataType)
+        public void SetSubscriptionType(Level2DataType DataType)
         {
             mSubscriptionType = DataType;
         }
 
+        public void SetDataDelegation(OrderDataDelegation Order, QuotationDataDelegation Quotation, TransactionDataDelegation Transaction)
+        {
+            mOrderDataDelegation = Order;
+            mQuotationDataDelegation = Quotation;
+            mTransactionDataDelegation = Transaction;
+        }
+
+        public void SetTerminationCondition(TerminationCondition Condition)
+        {
+            mTerminationCondition = Condition;
+        }
+
         public async void ConnectToSina()
         {
-            if (mSubscriptionType == SinaL2DataType.None)
+            if (mSubscriptionType == Level2DataType.None)
                 return;
 
             mRunning = true;
-
-            DataMining.DataHub.InitDataHubSymbolList(mSymbols);
 
             String qList = String.Empty;
             foreach (var ele in mSymbols)
@@ -72,7 +98,7 @@ namespace Level2Quotes.DataCapture
             }
             catch (System.Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                mQuitCode = "Exception: " + ex.Message;
             }
 
             var InputSegment = new ArraySegment<byte>(new byte[5120]);
@@ -89,7 +115,7 @@ namespace Level2Quotes.DataCapture
                     }
                     catch (System.Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
+                        mQuitCode = "Exception: " + ex.Message;
                     }
 
                     String Message = System.Text.Encoding.UTF8.GetString(InputSegment.Array, 0, Receivecount);
@@ -104,22 +130,28 @@ namespace Level2Quotes.DataCapture
 
                         int IntSymbol = Util.SymbolStringToInt(ele.Substring(7, 6));
 
-                        if (ele[12] == '=')
+                        if (ele[12] == '=' && mQuotationDataDelegation != null)
                         {
                             mSina.ParseQuotationData(ele, ref mQuotation);
-                            DataMining.DataHub.PushQuotationDataInHub(IntSymbol, mQuotation);
+                            mQuotationDataDelegation(IntSymbol, mQuotation);
                         }
-                        if (ele[13] == '0' || ele[13] == '1')
+                        if ((ele[13] == '0' || ele[13] == '1') && mTransactionDataDelegation != null)
                         {
                             mTransaction.Clear();
                             mSina.ParseTransactionData(ele, ref mTransaction);
-                            DataMining.DataHub.PushTransactionDataInHub(IntSymbol, mTransaction, false);
+                            mTransactionDataDelegation(IntSymbol, mTransaction);
                         }
-                        if (ele[13] == 'o')
+                        if (ele[13] == 'o' && mOrderDataDelegation != null)
                         {
                             mSina.ParseOrdersData(ele, ref mOrders);
-                            DataMining.DataHub.PushOrdersDataInHub(IntSymbol, mOrders);
+                            mOrderDataDelegation(IntSymbol, mOrders);
                         }
+                    }
+
+                    if (CheckTerminationCondition())
+                    {
+                        mQuitCode = "Termination Condition Reached";
+                        break;
                     }
 
                     if (mNextSend < DateTime.Now)
@@ -134,7 +166,7 @@ namespace Level2Quotes.DataCapture
                         }
                         catch (System.Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            mQuitCode = "Exception: " + ex.Message;
                         }
                     }
 
@@ -146,6 +178,7 @@ namespace Level2Quotes.DataCapture
                 }
                 else
                 {
+                    mQuitCode = "WebSocket is terminated by unknown reason";
                     break;
                 }
             }
@@ -156,7 +189,26 @@ namespace Level2Quotes.DataCapture
         public void Disconnect()
         {
             mRunning = false;
-            mQuitCode = "Normal";
+            mQuitCode = "User disconnect";
+        }
+
+        private bool CheckTerminationCondition()
+        {
+            bool ret = false;
+
+            switch (mTerminationCondition)
+            {
+                case TerminationCondition.TC_MarketClosed:
+                    ret = DateTime.Now.Hour >= 15;
+                    break;
+                case TerminationCondition.TC_OneSubscription:
+                    ret = true;
+                    break;
+                default:
+                    break;
+            }
+
+            return ret;
         }
     }
 }

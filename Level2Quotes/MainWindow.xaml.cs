@@ -63,13 +63,13 @@ namespace Level2Quotes
                 return;
             }
 
-            DataCapture.StockCaptureManager.Instance().Login(Uid, Pwd, VerifyCode);
+            DataCapture.StockQuotesManager.Instance().Login(Uid, Pwd, VerifyCode);
         }
 
         private void Test_Click(object sender, RoutedEventArgs e)
         {
-            SinaDataCaptureTask Task = new SinaDataCaptureTask(null);
-            Task.AddSymbolsList(DataCapture.StockCaptureManager.Instance().GetAllIntSymbol());
+            WhollyDataSubscriptionTask Task = new WhollyDataSubscriptionTask(null);
+            Task.AddSymbolsList(DataCapture.StockQuotesManager.Instance().GetAllIntSymbol());
             Task.DoTask();
             //DirectoryInfo Dir = new DirectoryInfo("../../HTD/");
             //String FileName = Verify.Text;
@@ -98,11 +98,11 @@ namespace Level2Quotes
 
         private void DownLoad_Click(object sender, RoutedEventArgs e)
         {
-            if (DataCapture.StockCaptureManager.Instance().IsLogin())
+            if (DataCapture.StockQuotesManager.Instance().IsLogin())
             {
                 String Path = "../../HTD/";
                 List<String> MissingSymbol = new List<String>();
-                List<String> Symbols = DataCapture.StockCaptureManager.Instance().GetAllSymbol();
+                List<String> Symbols = DataCapture.StockQuotesManager.Instance().GetAllSymbol();
                 foreach(var ele in Symbols)
                 {
                     if (!Directory.Exists(Path + ele))

@@ -50,7 +50,7 @@ namespace Level2Quotes.Task
                             }
 	                        if (Symbol != String.Empty)
 	                        {
-		                        DataCapture.SinaStockHistoryCapture Capture = DataCapture.StockCaptureManager.Instance().CreateSinaStockHistoryCapture();
+		                        DataCapture.SinaStockHistoryCapture Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockHistoryCapture();
 	                            Capture.GetTodayHistoryTransactionData(Symbol);
 	                        }
                         }

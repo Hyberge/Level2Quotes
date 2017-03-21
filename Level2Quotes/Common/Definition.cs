@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Level2Quotes
 {
-    public enum SinaL2DataType
+    public enum Level2DataType
     {
         None = 0x0,
         Transaction = 0x1,
