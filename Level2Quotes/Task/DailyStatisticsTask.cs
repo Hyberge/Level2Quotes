@@ -78,6 +78,11 @@ namespace Level2Quotes.Task
             return ret;
         }
 
+        public override void StopProcessing()
+        {
+
+        }
+
         public void AddSymbolsList(List<int> Symbols)
         {
             mSymbols = Symbols;

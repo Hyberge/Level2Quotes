@@ -119,6 +119,10 @@ namespace Level2Quotes.DataCapture
                     }
 
                     String Message = System.Text.Encoding.UTF8.GetString(InputSegment.Array, 0, Receivecount);
+
+                    if (Message.Contains("FAILED"))
+                        continue;
+
                     String[] SubMessage = Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (var ele in SubMessage)
@@ -128,22 +132,20 @@ namespace Level2Quotes.DataCapture
                             continue;
                         }
 
-                        int IntSymbol = Util.SymbolStringToInt(ele.Substring(7, 6));
+                        mTransaction.Clear();
 
-                        if (ele[12] == '=' && mQuotationDataDelegation != null)
+                        int IntSymbol = Util.SymbolStringToInt(ele.Substring(6, 6));
+
+                        if (ele[12] == '=' && mQuotationDataDelegation != null && mSina.ParseQuotationData(ele, ref mQuotation))
                         {
-                            mSina.ParseQuotationData(ele, ref mQuotation);
                             mQuotationDataDelegation(IntSymbol, mQuotation);
                         }
-                        if ((ele[13] == '0' || ele[13] == '1') && mTransactionDataDelegation != null)
+                        if ((ele[13] == '0' || ele[13] == '1') && mTransactionDataDelegation != null && mSina.ParseTransactionData(ele, ref mTransaction))
                         {
-                            mTransaction.Clear();
-                            mSina.ParseTransactionData(ele, ref mTransaction);
                             mTransactionDataDelegation(IntSymbol, mTransaction);
                         }
-                        if (ele[13] == 'o' && mOrderDataDelegation != null)
+                        if (ele[13] == 'o' && mOrderDataDelegation != null && mSina.ParseOrdersData(ele, ref mOrders))
                         {
-                            mSina.ParseOrdersData(ele, ref mOrders);
                             mOrderDataDelegation(IntSymbol, mOrders);
                         }
                     }
@@ -183,6 +185,8 @@ namespace Level2Quotes.DataCapture
                 }
             }
 
+            await mWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+
             await mWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
         }
 
@@ -199,7 +203,7 @@ namespace Level2Quotes.DataCapture
             switch (mTerminationCondition)
             {
                 case TerminationCondition.TC_MarketClosed:
-                    ret = DateTime.Now.Hour >= 15;
+                    ret = Util.CheckTransactionEnded();
                     break;
                 case TerminationCondition.TC_OneSubscription:
                     ret = true;

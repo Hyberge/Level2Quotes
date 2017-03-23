@@ -8,6 +8,11 @@ namespace Level2Quotes
 {
     class Util
     {
+        public static int TransactionBeginTime = 93000000;
+        public static int TransactionLanuchHourBegin = 113000000;
+        public static int TransactionLanuchHourEnd = 130000000;
+        public static int TransactionEndTime = 150000000;
+
         public static int SymbolStringToInt(String Symbol)
         {
             if (Symbol.Length == 8)
@@ -84,6 +89,23 @@ namespace Level2Quotes
             }
 
             return Ratio;
+        }
+
+        public static bool CheckInTransactionHours()
+        {
+            int NowTime = DateTimeToTradingTime(DateTime.Now);
+            return (NowTime >= TransactionBeginTime && NowTime <= TransactionLanuchHourBegin) ||
+                   (NowTime >= TransactionLanuchHourEnd && NowTime <= TransactionEndTime);
+        }
+
+        public static bool CheckTransactionStarted()
+        {
+            return DateTimeToTradingTime(DateTime.Now) >= TransactionBeginTime;
+        }
+
+        public static bool CheckTransactionEnded()
+        {
+            return DateTimeToTradingTime(DateTime.Now) <= TransactionEndTime;
         }
     }
 }

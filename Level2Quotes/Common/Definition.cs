@@ -46,6 +46,19 @@ namespace Level2Quotes
         public int   SellNumber;  // 卖单委托序号
         public int   IOType;      // 主动性买卖标识
         public int   Channel;     // 交易所的一个标记
+
+        public void Copy(TransactionData Src)
+        {
+            Index = Src.Index;
+            TradingTime = Src.TradingTime;
+            Price = Src.Price;
+            Volume = Src.Volume;
+            Count = Src.Count;
+            BuyNumber = Src.BuyNumber;
+            SellNumber = Src.SellNumber;
+            IOType = Src.IOType;
+            Channel = Src.Channel;
+        }
     }
 
     /*
@@ -92,5 +105,38 @@ namespace Level2Quotes
         public int[]   BidVolume = new int[10];      // 买1~10量
         public float[] AskPrice = new float[10];     // 卖1~10价
         public int[]   AskVolume = new int[10];      // 卖1~10量
+
+        public void Copy(QuotationData Src)
+        {
+            Name = Src.Name;
+            TradingTime = Src.TradingTime;
+            LastClose = Src.LastClose;
+            OpenPrice = Src.OpenPrice;
+            HighPrice = Src.HighPrice;
+            LowPrice = Src.LowPrice;
+            NowPrice = Src.NowPrice;
+            Status = Src.Status;
+            TransactionCount = Src.TransactionCount;
+            TotalVolume = Src.TotalVolume;
+            TotalAmount = Src.TotalAmount;
+            CurBidAmount = Src.CurBidAmount;
+            AverBidPrice = Src.AverBidPrice;
+            CurAskAmount = Src.CurAskAmount;
+            AverAskPrice = Src.AverAskPrice;
+            CancelBidNum = Src.CancelBidNum;
+            CancelBidAmount = Src.CancelBidAmount;
+            CancelAskNum = Src.CancelAskNum;
+            CancelAskAmount = Src.CancelAskAmount;
+            TotalBidNum = Src.TotalBidNum;
+            TotalAskNum = Src.TotalAskNum;
+
+            for (int i=0; i<10; ++i)
+            {
+                BidPrice[i] = Src.BidPrice[i];
+                BidVolume[i] = Src.BidVolume[i];
+                AskPrice[i] = Src.AskPrice[i];
+                AskVolume[i] = Src.AskVolume[i];
+            }
+        }
     }
 }

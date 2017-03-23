@@ -11,6 +11,7 @@ namespace Level2Quotes.Task
         Unstarted,
         Running,
         Completion,
+        Terminated,
         Failed,
     }
 
@@ -66,6 +67,21 @@ namespace Level2Quotes.Task
             }
         }
 
+        public void TerminateTask()
+        {
+            if (mState == TaskState.Completion && mNextTask != null)
+            {
+	            mNextTask.TerminateTask();
+            }
+            else if (mState == TaskState.Running)
+            {
+                StopProcessing();
+                mState = TaskState.Terminated;
+            }
+        }
+
         public abstract bool TransactionProcessing();
+
+        public virtual void StopProcessing() { }
     }
 }

@@ -364,9 +364,8 @@ namespace Level2Quotes.DataCapture
         {
             String[] SubMessage = Message.Split(new char[] { ',' });
 
-            if (SubMessage.Length != 66)
+            if (SubMessage.Length != 66 || SubMessage[8] != "PZ")
             {
-                Console.WriteLine("Parse Quotation Data Error !!!");
                 return false;
             }
 
