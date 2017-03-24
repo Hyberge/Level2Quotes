@@ -10,8 +10,8 @@ namespace Level2Quotes.DataCapture
     {
         bool mIsLogin = false;
 
-        String mUid;
-        String mPassWD;
+        String mUid = String.Empty;
+        String mPassWD = String.Empty;
 
         SinaAPI mSina = new SinaAPI();
 
@@ -52,14 +52,25 @@ namespace Level2Quotes.DataCapture
             mIsLogin = false;
         }
 
-        public void Stop()
+        public void Reset()
         {
-            mIsLogin = false;
+            Logout();
+
+            mSymbols.Clear();
+            mIntSymbols.Clear();
+
+            mUid = String.Empty;
+            mPassWD = String.Empty;
         }
 
         public SinaAPI GetSinaAPI()
         {
             return mSina;
+        }
+
+        public String GetLoginedUserID()
+        {
+            return mUid;
         }
 
         public List<String> GetAllSymbol()

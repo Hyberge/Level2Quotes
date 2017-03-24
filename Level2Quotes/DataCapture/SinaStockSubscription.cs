@@ -86,10 +86,9 @@ namespace Level2Quotes.DataCapture
 
         public async void ConnectToSina()
         {
-            if (mSubscriptionType == Level2DataType.None)
+            if (mSubscriptionType == Level2DataType.None ||
+                mSymbols.Count == 0)
                 return;
-
-            mRunning = true;
 
             String qList = String.Empty;
             foreach (var ele in mSymbols)
@@ -110,8 +109,10 @@ namespace Level2Quotes.DataCapture
             catch (System.Exception ex)
             {
                 mQuitCode = "Exception: " + ex.Message;
+                return;
             }
-
+            
+            mRunning = true;
             while (mRunning)
             {
                 if (mWebSocket.State == WebSocketState.Open)

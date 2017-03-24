@@ -79,15 +79,14 @@ namespace Level2Quotes.DataMining
             CurData.mLock.Lock();
             if (Clear)
             {
-                CurData.mTransaction = Transaction;
+                CurData.mTransaction.Clear();
             }
-            else
+            
+            foreach (var ele in Transaction)
             {
-                foreach (var ele in Transaction)
-                {
-                    CurData.mTransaction.Add(ele);
-                }
+                CurData.mTransaction.Add(ele);
             }
+            
             CurData.mLock.Unlock();
         }
 

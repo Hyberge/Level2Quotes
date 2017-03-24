@@ -104,7 +104,7 @@ namespace Level2Quotes.DataCapture
 
         public void Logout()
         {
-
+            Cookies = new CookieContainer();
         }
 
         private String GetClientIP()
