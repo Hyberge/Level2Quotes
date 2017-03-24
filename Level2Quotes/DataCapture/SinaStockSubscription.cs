@@ -32,6 +32,7 @@ namespace Level2Quotes.DataCapture
         SinaAPI mSina;
 
         ClientWebSocket mWebSocket = new ClientWebSocket();
+        ArraySegment<byte> mInputSegment = new ArraySegment<byte>(new byte[20480]);
 
         bool mRunning = false;
 
@@ -54,6 +55,16 @@ namespace Level2Quotes.DataCapture
         {
             mSymbols = Symbols;
             mSina = Sina;
+        }
+
+        public String GetQuitCode()
+        {
+            return mQuitCode;
+        }
+
+        public bool IsRunning()
+        {
+            return mRunning;
         }
 
         public void SetSubscriptionType(Level2DataType DataType)
@@ -101,26 +112,30 @@ namespace Level2Quotes.DataCapture
                 mQuitCode = "Exception: " + ex.Message;
             }
 
-            var InputSegment = new ArraySegment<byte>(new byte[5120]);
-
             while (mRunning)
             {
                 if (mWebSocket.State == WebSocketState.Open)
                 {
+                    bool EndOfMessage = false;
                     int Receivecount = 0;
-                    try
+                    String Message = String.Empty;
+                    while (!EndOfMessage)
                     {
-                        var Result = await mWebSocket.ReceiveAsync(InputSegment, CancellationToken.None);
-                        Receivecount = Result.Count;
-                    }
-                    catch (System.Exception ex)
-                    {
-                        mQuitCode = "Exception: " + ex.Message;
+	                    try
+	                    {
+	                        var Result = await mWebSocket.ReceiveAsync(mInputSegment, CancellationToken.None);
+	                        Receivecount = Result.Count;
+                            EndOfMessage = Result.EndOfMessage;
+	                    }
+	                    catch (System.Exception ex)
+	                    {
+	                        mQuitCode = "Exception: " + ex.Message;
+	                    }
+	
+	                    Message += System.Text.Encoding.UTF8.GetString(mInputSegment.Array, 0, Receivecount);
                     }
 
-                    String Message = System.Text.Encoding.UTF8.GetString(InputSegment.Array, 0, Receivecount);
-
-                    if (Message.Contains("FAILED"))
+                    if (!Message.Contains("2cn_"))
                         continue;
 
                     String[] SubMessage = Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -187,7 +202,7 @@ namespace Level2Quotes.DataCapture
 
             await mWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
 
-            await mWebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+            mRunning = false;
         }
 
         public void Disconnect()

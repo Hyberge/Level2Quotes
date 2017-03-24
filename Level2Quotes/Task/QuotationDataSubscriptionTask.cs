@@ -18,7 +18,7 @@ namespace Level2Quotes.Task
     }
     class QuotationDataSubscriptionTask: ITask
     {
-        int mPerThreadCount = 10;
+        int mPerThreadCount = 50;
 
         SubscribeIntervalMode mMode = SubscribeIntervalMode.SIM_FiveMinInterval;
 
@@ -30,6 +30,8 @@ namespace Level2Quotes.Task
 
         Dictionary<int, QuotationData> mDatas = null;
         Dictionary<int, bool> mFaultTolerance = null;
+
+        List<DataCapture.SinaStockSubscription> mCapture = new List<DataCapture.SinaStockSubscription>();
 
         public QuotationDataSubscriptionTask(ITask Next): base(Next)
         { }
@@ -63,25 +65,19 @@ namespace Level2Quotes.Task
 
             if (mSymbols != null)
             {
-                List<Thread> SubTask = new List<Thread>();
-
                 int Index = 0;
                 while (Index < mSymbols.Count)
                 {
                     List<int> SubSymbols = mSymbols.GetRange(Index, Math.Min(mPerThreadCount, mSymbols.Count - Index));
                     Index += mPerThreadCount;
 
-                    Thread NewThread = new Thread(o =>
-                    {
-                        DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockCapture(SubSymbols);
-                        Capture.SetTerminationCondition(DataCapture.TerminationCondition.TC_MarketClosed);
-                        Capture.SetSubscriptionType(Level2DataType.Quotation);
-                        Capture.SetDataDelegation(null, this.QuotationDataProcessor, null);
-                        Capture.ConnectToSina();
-                    });
-                    NewThread.Start();
+                    DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockCapture(SubSymbols);
+                    mCapture.Add(Capture);
 
-                    SubTask.Add(NewThread);
+                    Capture.SetTerminationCondition(DataCapture.TerminationCondition.TC_MarketClosed);
+                    Capture.SetSubscriptionType(Level2DataType.Quotation);
+                    Capture.SetDataDelegation(null, this.QuotationDataProcessor, null);
+                    Capture.ConnectToSina();
                 }
 
                 ret = true;
@@ -95,16 +91,14 @@ namespace Level2Quotes.Task
                         RecordDataToDisk();
                     }
 
-                    bool AllCompleted = true;
+                    bool AllCompleted = false;
 
-                    foreach (var ele in SubTask)
+                    foreach (var ele in mCapture)
                     {
-                        AllCompleted &= (ele.ThreadState == ThreadState.Stopped);
-
-                        ret &= (ele.ThreadState != ThreadState.Aborted);
+                        AllCompleted |= ele.IsRunning();
                     }
 
-                    if (AllCompleted)
+                    if (!AllCompleted)
                         break;
 
                     Thread.Sleep(10000);

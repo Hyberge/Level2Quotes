@@ -105,7 +105,7 @@ namespace Level2Quotes
 
         public static bool CheckTransactionEnded()
         {
-            return DateTimeToTradingTime(DateTime.Now) <= TransactionEndTime;
+            return DateTimeToTradingTime(DateTime.Now) >= TransactionEndTime;
         }
     }
 }
