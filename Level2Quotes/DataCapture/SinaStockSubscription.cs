@@ -90,6 +90,8 @@ namespace Level2Quotes.DataCapture
                 mSymbols.Count == 0)
                 return;
 
+            mRunning = true;
+
             String qList = String.Empty;
             foreach (var ele in mSymbols)
             {
@@ -112,7 +114,6 @@ namespace Level2Quotes.DataCapture
                 return;
             }
             
-            mRunning = true;
             while (mRunning)
             {
                 if (mWebSocket.State == WebSocketState.Open)
@@ -139,7 +140,17 @@ namespace Level2Quotes.DataCapture
                     if (!Message.Contains("2cn_"))
                         continue;
 
-                    String[] SubMessage = Message.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    while (true)
+                    {
+                        int Index = Message.IndexOf('\n');
+
+                        if (Index == -1)
+                            break;
+
+                        Message = Message.Remove(Index, 1);
+                    }
+
+                    String[] SubMessage = Message.Split(new String[] { "2cn_" }, StringSplitOptions.RemoveEmptyEntries);
 
                     foreach (var ele in SubMessage)
                     {
@@ -150,17 +161,17 @@ namespace Level2Quotes.DataCapture
 
                         mTransaction.Clear();
 
-                        int IntSymbol = Util.SymbolStringToInt(ele.Substring(6, 6));
+                        int IntSymbol = Util.SymbolStringToInt(ele.Substring(2, 6));
 
-                        if (ele[12] == '=' && mQuotationDataDelegation != null && mSina.ParseQuotationData(ele, ref mQuotation))
+                        if (ele[8] == '=' && mQuotationDataDelegation != null && mSina.ParseQuotationData(ele, ref mQuotation))
                         {
                             mQuotationDataDelegation(IntSymbol, mQuotation);
                         }
-                        if ((ele[13] == '0' || ele[13] == '1') && mTransactionDataDelegation != null && mSina.ParseTransactionData(ele, ref mTransaction))
+                        if ((ele[9] == '0' || ele[13] == '1') && mTransactionDataDelegation != null && mSina.ParseTransactionData(ele, ref mTransaction))
                         {
                             mTransactionDataDelegation(IntSymbol, mTransaction);
                         }
-                        if (ele[13] == 'o' && mOrderDataDelegation != null && mSina.ParseOrdersData(ele, ref mOrders))
+                        if (ele[9] == 'o' && mOrderDataDelegation != null && mSina.ParseOrdersData(ele, ref mOrders))
                         {
                             mOrderDataDelegation(IntSymbol, mOrders);
                         }

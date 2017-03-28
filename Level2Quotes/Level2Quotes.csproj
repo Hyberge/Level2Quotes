@@ -100,6 +100,7 @@
     <Compile Include="Task\DailyStatisticsTask.cs" />
     <Compile Include="Task\LinearRegressionTrainingTask.cs" />
     <Compile Include="Task\QuotationDataSubscriptionTask.cs" />
+    <Compile Include="Task\TaskManager.cs" />
     <Compile Include="Task\WhollyDataSubscriptionTask.cs" />
     <Compile Include="Task\SinaHistoryDataCaptureTask.cs" />
     <Compile Include="Task\TaskInterface.cs" />
