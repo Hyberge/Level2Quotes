@@ -122,6 +122,12 @@ namespace Level2Quotes
 
             file.Close();
         }
+        public static bool IsQuotationDataExists(String Symbol, DateTime Day)
+        {
+            String FileName = sQuotationDataPath + Symbol + "/" + Day.ToString("yyyy-MM-dd");
+
+            return File.Exists(FileName);
+        }
 
         public static bool WriteQuotationDataToFile(String Symbol, QuotationData Data, bool Rewriting)
         {
@@ -157,18 +163,18 @@ namespace Level2Quotes
                 StreamWriter writer = new StreamWriter(file);
 
                 String str = Data.TradingTime + "|";
-                str += Data.LastClose + "|";
-                str += Data.OpenPrice + "|";
-                str += Data.CurBidAmount + "|";
-                str += Data.AverBidPrice + "|";
-                str += Data.CurAskAmount + "|";
-                str += Data.AverAskPrice + "|";
-                str += Data.CancelBidNum + "|";
-                str += Data.CancelBidAmount + "|";
-                str += Data.CancelAskNum + "|";
-                str += Data.CancelAskAmount + "|";
-                str += Data.TotalBidNum + "|";
-                str += Data.TotalAskNum;
+                str += Data.Base.LastClose + "|";
+                str += Data.Base.OpenPrice + "|";
+                str += Data.Statistics.CurBidAmount + "|";
+                str += Data.Statistics.AverBidPrice + "|";
+                str += Data.Statistics.CurAskAmount + "|";
+                str += Data.Statistics.AverAskPrice + "|";
+                str += Data.Statistics.CancelBidNum + "|";
+                str += Data.Statistics.CancelBidAmount + "|";
+                str += Data.Statistics.CancelAskNum + "|";
+                str += Data.Statistics.CancelAskAmount + "|";
+                str += Data.Statistics.TotalBidNum + "|";
+                str += Data.Statistics.TotalAskNum;
 
                 writer.WriteLine(str);
 
@@ -205,18 +211,18 @@ namespace Level2Quotes
                     {
                         QuotationData ele = new QuotationData();
                         ele.TradingTime = strElement[0];
-                        ele.LastClose = (float)Convert.ToDouble(strElement[1]);
-                        ele.OpenPrice = (float)Convert.ToDouble(strElement[2]);
-                        ele.CurBidAmount = (float)Convert.ToDouble(strElement[3]);
-                        ele.AverBidPrice = (float)Convert.ToDouble(strElement[4]);
-                        ele.CurAskAmount = (float)Convert.ToDouble(strElement[5]);
-                        ele.AverAskPrice = (float)Convert.ToDouble(strElement[6]);
-                        ele.CancelBidNum = Convert.ToInt32(strElement[7]);
-                        ele.CancelBidAmount = (float)Convert.ToDouble(strElement[8]);
-                        ele.CancelAskNum = Convert.ToInt32(strElement[9]);
-                        ele.CancelAskAmount = (float)Convert.ToDouble(strElement[10]);
-                        ele.TotalBidNum = Convert.ToInt32(strElement[11]);
-                        ele.TotalAskNum = Convert.ToInt32(strElement[12]);
+                        ele.Base.LastClose = (float)Convert.ToDouble(strElement[1]);
+                        ele.Base.OpenPrice = (float)Convert.ToDouble(strElement[2]);
+                        ele.Statistics.CurBidAmount = (float)Convert.ToDouble(strElement[3]);
+                        ele.Statistics.AverBidPrice = (float)Convert.ToDouble(strElement[4]);
+                        ele.Statistics.CurAskAmount = (float)Convert.ToDouble(strElement[5]);
+                        ele.Statistics.AverAskPrice = (float)Convert.ToDouble(strElement[6]);
+                        ele.Statistics.CancelBidNum = Convert.ToInt32(strElement[7]);
+                        ele.Statistics.CancelBidAmount = (float)Convert.ToDouble(strElement[8]);
+                        ele.Statistics.CancelAskNum = Convert.ToInt32(strElement[9]);
+                        ele.Statistics.CancelAskAmount = (float)Convert.ToDouble(strElement[10]);
+                        ele.Statistics.TotalBidNum = Convert.ToInt32(strElement[11]);
+                        ele.Statistics.TotalAskNum = Convert.ToInt32(strElement[12]);
 
                         Data.Add(ele);
                     }

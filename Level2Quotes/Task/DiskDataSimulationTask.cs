@@ -35,7 +35,9 @@ namespace Level2Quotes.Task
 
                     Thread NewThread = new Thread(o =>
                     {
-                        DataCapture.StockDiskDataSimulation Processer = DataCapture.StockQuotesManager.Instance().CreateStockDiskDataCapture(SubSymbols);
+                        DataCapture.StockDiskDataSimulation Processer = DataCapture.StockQuotesManager.Instance().CreateStockDiskDataSimulation(SubSymbols);
+                        Processer.SetSimulationType(Level2DataType.Transaction & Level2DataType.Quotation);
+
                         Processer.SimulationCapture(mNeedDay);
 
                         GC.Collect();

@@ -27,6 +27,8 @@ namespace Level2Quotes.DataCapture
 
         List<int> mSymbols = null;
 
+        String mQList = String.Empty;
+
         String mToken;
 
         SinaAPI mSina;
@@ -84,7 +86,7 @@ namespace Level2Quotes.DataCapture
             mTerminationCondition = Condition;
         }
 
-        public async void ConnectToSina()
+        public void ConnectToSina()
         {
             if (mSubscriptionType == Level2DataType.None ||
                 mSymbols.Count == 0)
@@ -92,117 +94,29 @@ namespace Level2Quotes.DataCapture
 
             mRunning = true;
 
-            String qList = String.Empty;
-            foreach (var ele in mSymbols)
-            {
-                if (qList != String.Empty)
-                    qList += ",";
-                qList += mSina.GenerateQList(Util.SymbolIntToString(ele), mSubscriptionType);
-            }
-
-            mToken = mSina.GetToken(qList);
-
-            String Url = "ws://ff.sinajs.cn/wskt?token=" + mToken + "&list=" + qList;
-
-            try
-            {
-                await mWebSocket.ConnectAsync(new Uri(Url), CancellationToken.None);
-            }
-            catch (System.Exception ex)
-            {
-                mQuitCode = "Exception: " + ex.Message;
-                return;
-            }
+            mRunning = InitContext();
             
             while (mRunning)
             {
                 if (mWebSocket.State == WebSocketState.Open)
                 {
-                    bool EndOfMessage = false;
-                    int Receivecount = 0;
-                    String Message = String.Empty;
-                    while (!EndOfMessage)
+                    try
                     {
-	                    try
-	                    {
-	                        var Result = await mWebSocket.ReceiveAsync(mInputSegment, CancellationToken.None);
-	                        Receivecount = Result.Count;
-                            EndOfMessage = Result.EndOfMessage;
-	                    }
-	                    catch (System.Exception ex)
-	                    {
-	                        mQuitCode = "Exception: " + ex.Message;
-	                    }
-	
-	                    Message += System.Text.Encoding.UTF8.GetString(mInputSegment.Array, 0, Receivecount);
-                    }
+                        String Message = ReadMessageFromWebSocket();
 
-                    if (!Message.Contains("2cn_"))
-                        continue;
+                        MessageProcessing(Message);
 
-                    while (true)
-                    {
-                        int Index = Message.IndexOf('\n');
-
-                        if (Index == -1)
+                        if (CheckTerminationCondition())
+                        {
+                            mQuitCode = "Termination Condition Reached";
                             break;
+                        }
 
-                        Message = Message.Remove(Index, 1);
+                        UpdateContext();
                     }
-
-                    String[] SubMessage = Message.Split(new String[] { "2cn_" }, StringSplitOptions.RemoveEmptyEntries);
-
-                    foreach (var ele in SubMessage)
+                    catch (System.Exception ex)
                     {
-                        if (ele.Length < 14)
-                        {
-                            continue;
-                        }
-
-                        mTransaction.Clear();
-
-                        int IntSymbol = Util.SymbolStringToInt(ele.Substring(2, 6));
-
-                        if (ele[8] == '=' && mQuotationDataDelegation != null && mSina.ParseQuotationData(ele, ref mQuotation))
-                        {
-                            mQuotationDataDelegation(IntSymbol, mQuotation);
-                        }
-                        if ((ele[9] == '0' || ele[13] == '1') && mTransactionDataDelegation != null && mSina.ParseTransactionData(ele, ref mTransaction))
-                        {
-                            mTransactionDataDelegation(IntSymbol, mTransaction);
-                        }
-                        if (ele[9] == 'o' && mOrderDataDelegation != null && mSina.ParseOrdersData(ele, ref mOrders))
-                        {
-                            mOrderDataDelegation(IntSymbol, mOrders);
-                        }
-                    }
-
-                    if (CheckTerminationCondition())
-                    {
-                        mQuitCode = "Termination Condition Reached";
-                        break;
-                    }
-
-                    if (mNextSend < DateTime.Now)
-                    {
-                        mNextSend = DateTime.Now.AddSeconds(55);
-                        mSendTimes++;
-                            
-                        try
-                        {
-	                        var SendSegment = new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes("*"+mToken));
-	                        await mWebSocket.SendAsync(SendSegment, WebSocketMessageType.Text, true, CancellationToken.None);
-                        }
-                        catch (System.Exception ex)
-                        {
-                            mQuitCode = "Exception: " + ex.Message;
-                        }
-                    }
-
-                    if (mSendTimes > 8)
-                    {
-                        mSendTimes = 0;
-                        mToken = mSina.GetToken(qList);
+                        HandleException(ex);
                     }
                 }
                 else
@@ -212,7 +126,7 @@ namespace Level2Quotes.DataCapture
                 }
             }
 
-            await mWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+            mWebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
 
             mRunning = false;
         }
@@ -221,6 +135,110 @@ namespace Level2Quotes.DataCapture
         {
             mRunning = false;
             mQuitCode = "User disconnect";
+        }
+
+        private bool InitContext()
+        {
+            mQList = String.Empty;
+            foreach (var ele in mSymbols)
+            {
+                if (mQList != String.Empty)
+                    mQList += ",";
+                mQList += mSina.GenerateQList(Util.SymbolIntToString(ele), mSubscriptionType);
+            }
+
+            mWebSocket.Options.SetBuffer(mInputSegment.Count, mInputSegment.Count);
+
+            mToken = mSina.GetToken(mQList);
+
+            String Url = "ws://ff.sinajs.cn/wskt?token=" + mToken + "&list=" + mQList;
+
+            try
+            {
+                mWebSocket.ConnectAsync(new Uri(Url), CancellationToken.None).Wait();
+            }
+            catch (System.Exception ex)
+            {
+                mQuitCode = "Exception: " + ex.Message;
+                return false;
+            }
+
+            return true;
+        }
+
+        private void UpdateContext()
+        {
+            if (mNextSend < DateTime.Now)
+            {
+                mNextSend = DateTime.Now.AddSeconds(55);
+                mSendTimes++;
+
+                var SendSegment = new ArraySegment<byte>(System.Text.Encoding.UTF8.GetBytes("*" + mToken));
+                mWebSocket.SendAsync(SendSegment, WebSocketMessageType.Text, true, CancellationToken.None).Wait();
+            }
+
+            if (mSendTimes > 8)
+            {
+                mSendTimes = 0;
+                mToken = mSina.GetToken(mQList);
+            }
+        }
+
+        private String ReadMessageFromWebSocket()
+        {
+            bool EndOfMessage = false;
+            String Message = String.Empty;
+            while (!EndOfMessage)
+            {
+                var Result = mWebSocket.ReceiveAsync(mInputSegment, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+                EndOfMessage = Result.EndOfMessage;
+
+                Message += System.Text.Encoding.UTF8.GetString(mInputSegment.Array, 0, Result.Count);
+            }
+            return Message;
+        }
+
+        private void MessageProcessing(String Message)
+        {
+            if (Message == String.Empty || !Message.Contains("2cn_"))
+                return;
+
+            while (true)
+            {
+                int Index = Message.IndexOf('\n');
+
+                if (Index == -1)
+                    break;
+
+                Message = Message.Remove(Index, 1);
+            }
+
+            String[] SubMessage = Message.Split(new String[] { "2cn_" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var ele in SubMessage)
+            {
+                if (ele.Length < 14)
+                {
+                    continue;
+                }
+
+                mTransaction.Clear();
+
+                int IntSymbol = Util.SymbolStringToInt(ele.Substring(2, 6));
+
+                if (ele[8] == '=' && mQuotationDataDelegation != null && mSina.ParseQuotationData(ele, ref mQuotation))
+                {
+                    mQuotationDataDelegation(IntSymbol, mQuotation);
+                }
+                if ((ele[9] == '0' || ele[13] == '1') && mTransactionDataDelegation != null && mSina.ParseTransactionData(ele, ref mTransaction))
+                {
+                    mTransactionDataDelegation(IntSymbol, mTransaction);
+                }
+                if (ele[9] == 'o' && mOrderDataDelegation != null && mSina.ParseOrdersData(ele, ref mOrders))
+                {
+                    mOrderDataDelegation(IntSymbol, mOrders);
+                }
+            }
         }
 
         private bool CheckTerminationCondition()
@@ -240,6 +258,20 @@ namespace Level2Quotes.DataCapture
             }
 
             return ret;
+        }
+
+        private void HandleException(System.Exception ex)
+        {
+            WebSocketException SocketEX = ex as WebSocketException;
+            if (SocketEX != null)
+            {
+                mWebSocket = new ClientWebSocket();
+
+                mRunning = InitContext();
+
+                Console.WriteLine("WebSocket Exception With Error Code: " + SocketEX.WebSocketErrorCode + "    " + SocketEX.ErrorCode
+                    + "    " + System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+            }
         }
     }
 }

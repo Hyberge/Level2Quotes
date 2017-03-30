@@ -10,9 +10,23 @@ namespace Level2Quotes.DataCapture
     class StockDiskDataSimulation
     {
         List<int> mSymbols = null;
+
+        Level2DataType mDataType;
+
+        public List<TransactionData> Transaction = new List<TransactionData>();
+
+        public List<QuotationData> Quotation = new List<QuotationData>();
+
+        public List<OrdersData> Orders = new List<OrdersData>();
+
         public StockDiskDataSimulation(List<int> Symbols)
         {
             mSymbols = Symbols;
+        }
+
+        public void SetSimulationType(Level2DataType DataType)
+        {
+            mDataType = DataType;
         }
 
         public void SimulationCapture(DateTime Day)
@@ -24,13 +38,25 @@ namespace Level2Quotes.DataCapture
 
             foreach (var ele in mSymbols)
             {
-                if (FileWriter.IsTransactionDataExists(Util.SymbolIntToString(ele), Day))
+                String Symbol = Util.SymbolIntToString(ele);
+
+                if (((mDataType&Level2DataType.Transaction) == Level2DataType.Transaction) && FileWriter.IsTransactionDataExists(Symbol, Day))
                 {
-                    List<TransactionData> Data = new List<TransactionData>();
+                    FileWriter.ReadTransactionDataFromFile(Symbol, Day, Transaction);
 
-                    FileWriter.ReadTransactionDataFromFile(Util.SymbolIntToString(ele), Day, Data);
+                    DataMining.DataHub.PushTransactionDataInHub(ele, Transaction, true);
+                }
 
-                    DataMining.DataHub.PushTransactionDataInHub(ele, Data, true);
+                if (((mDataType & Level2DataType.Transaction) == Level2DataType.Transaction) && FileWriter.IsQuotationDataExists(Symbol, Day))
+                {
+                    FileWriter.ReadQuotationDataFromFile(Symbol, Day, Quotation);
+
+                    DataMining.DataHub.PushQuotationDataInHub(ele, Quotation);
+                }
+
+                if (((mDataType & Level2DataType.Orders) == Level2DataType.Orders) && FileWriter.IsQuotationDataExists(Symbol, Day))
+                {
+                    
                 }
             }
         }

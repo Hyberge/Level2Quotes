@@ -33,7 +33,7 @@ namespace Level2Quotes.Task
 
                     Thread NewThread = new Thread(o =>
                     {
-                        DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockCapture(SubSymbols);
+                        DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockSubscription(SubSymbols);
                         Capture.SetTerminationCondition(DataCapture.TerminationCondition.TC_MarketClosed);
                         Capture.SetSubscriptionType(Level2DataType.Orders & Level2DataType.Quotation & Level2DataType.Transaction);
                         Capture.SetDataDelegation(DataMining.DataHub.PushOrdersDataInHub,

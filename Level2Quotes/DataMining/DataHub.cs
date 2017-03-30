@@ -10,12 +10,9 @@ namespace Level2Quotes.DataMining
     {
         public AtomLock mLock = new AtomLock();
 
-        public float LastClose;
-        public float OpenPrice;
-        public float[] BidPrice = new float[10];     // 买1~10价
-        public int[] BidVolume = new int[10];        // 买1~10量
-        public float[] AskPrice = new float[10];     // 卖1~10价
-        public int[] AskVolume = new int[10];        // 卖1~10量
+        public BaseStatus mBase = new BaseStatus();
+        public CrossQuotesStatus mCrossQuotes = new CrossQuotesStatus();
+        public List<StatisticsStatus> mStatistics = new List<StatisticsStatus>();
         public List<TransactionData> mTransaction = new List<TransactionData>();
     }
 
@@ -62,14 +59,23 @@ namespace Level2Quotes.DataMining
             SymbolData CurData = mDatas[Symbol];
 
             CurData.mLock.Lock();
-            for (int i=0; i<10; ++i)
-            {
-                CurData.BidPrice[i] = Quotation.BidPrice[i];
-                CurData.BidVolume[i] = Quotation.BidVolume[i];
-                CurData.AskPrice[i] = Quotation.AskPrice[i];
-                CurData.AskVolume[i] = Quotation.AskVolume[i];
-            }
+
+            CurData.mBase.Copy(Quotation.Base);
+            CurData.mCrossQuotes.Copy(Quotation.CrossQuotes);
+
+            StatisticsStatus Statistics = new StatisticsStatus();
+            Statistics.Copy(Quotation.Statistics);
+            CurData.mStatistics.Add(Statistics);
+
             CurData.mLock.Unlock();
+        }
+
+        public static void PushQuotationDataInHub(int Symbol, List<QuotationData> Quotation)
+        {
+            foreach(var ele in Quotation)
+            {
+                PushQuotationDataInHub(Symbol, ele);
+            }
         }
 
         public static void PushTransactionDataInHub(int Symbol, List<TransactionData> Transaction, bool Clear)
@@ -88,44 +94,6 @@ namespace Level2Quotes.DataMining
             }
             
             CurData.mLock.Unlock();
-        }
-
-        public static bool PushTransactionDataInHub(int Symbol, List<TransactionData> NewData, OrdersData Orders, QuotationData Quotation, bool Clear = false)
-        {
-            bool ret = false;
-
-            if (mDatas.ContainsKey(Symbol))
-            {
-                SymbolData CurData = mDatas[Symbol];
-
-                CurData.mLock.Lock();
-
-                for (int i = 0; i < 10; ++i)
-                {
-                    CurData.BidPrice[i] = Quotation.BidPrice[i];
-                    CurData.BidVolume[i] = Quotation.BidVolume[i];
-                    CurData.AskPrice[i] = Quotation.AskPrice[i];
-                    CurData.AskVolume[i] = Quotation.AskVolume[i];
-                }
-
-                if (Clear)
-                {
-                    CurData.mTransaction = NewData;
-                }
-                else
-                {
-                    foreach (var ele in NewData)
-                    {
-                        CurData.mTransaction.Add(ele);
-                    }
-                }
-
-                CurData.mLock.Unlock();
-
-                ret = true;
-            }
-
-            return ret;
         }
 
         public static bool SubmitProcesser(int Symbol, IDataProcesser Processer)

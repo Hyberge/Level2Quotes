@@ -370,26 +370,33 @@ namespace Level2Quotes.DataCapture
             }
 
             Quotation.TradingTime = SubMessage[2] + " " + SubMessage[1];
-            Quotation.LastClose = (float)Convert.ToDouble(SubMessage[3]);
-            Quotation.OpenPrice = (float)Convert.ToDouble(SubMessage[4]);
-            Quotation.HighPrice = (float)Convert.ToDouble(SubMessage[5]);
-            Quotation.LowPrice = (float)Convert.ToDouble(SubMessage[6]);
-            Quotation.NowPrice = (float)Convert.ToDouble(SubMessage[7]);
-            Quotation.Status = ConvertToTradingStatus(SubMessage[8]);
-            Quotation.TransactionCount = Convert.ToInt32(SubMessage[9]);
-            Quotation.TotalVolume = Convert.ToInt32(SubMessage[10]) / 100;
-            Quotation.TotalAmount = (float)Convert.ToDouble(SubMessage[11]);
-            Quotation.CurBidAmount = (float)Convert.ToDouble(SubMessage[12]);
-            Quotation.AverBidPrice = (float)Convert.ToDouble(SubMessage[13]);
-            Quotation.CurAskAmount = (float)Convert.ToDouble(SubMessage[14]);
-            Quotation.AverAskPrice = (float)Convert.ToDouble(SubMessage[15]);
+            Quotation.Base.LastClose = (float)Convert.ToDouble(SubMessage[3]);
+            Quotation.Base.OpenPrice = (float)Convert.ToDouble(SubMessage[4]);
+            Quotation.Base.HighPrice = (float)Convert.ToDouble(SubMessage[5]);
+            Quotation.Base.LowPrice = (float)Convert.ToDouble(SubMessage[6]);
+            Quotation.Base.NowPrice = (float)Convert.ToDouble(SubMessage[7]);
+            Quotation.Base.Status = ConvertToTradingStatus(SubMessage[8]);
+            Quotation.Statistics.TransactionCount = Convert.ToInt32(SubMessage[9]);
+            Quotation.Statistics.TotalVolume = Convert.ToInt32(SubMessage[10]) / 100;
+            Quotation.Statistics.TotalAmount = (float)Convert.ToDouble(SubMessage[11]);
+            Quotation.Statistics.CurBidAmount = (float)Convert.ToDouble(SubMessage[12]);
+            Quotation.Statistics.AverBidPrice = (float)Convert.ToDouble(SubMessage[13]);
+            Quotation.Statistics.CurAskAmount = (float)Convert.ToDouble(SubMessage[14]);
+            Quotation.Statistics.AverAskPrice = (float)Convert.ToDouble(SubMessage[15]);
+
+            Quotation.Statistics.CancelBidNum = Convert.ToInt32(SubMessage[16]);
+            Quotation.Statistics.CancelBidAmount = (float)Convert.ToDouble(SubMessage[17]);
+            Quotation.Statistics.CancelAskNum = Convert.ToInt32(SubMessage[19]);
+            Quotation.Statistics.CancelAskAmount = (float)Convert.ToDouble(SubMessage[20]);
+            Quotation.Statistics.TotalBidNum = Convert.ToInt32(SubMessage[22]);
+            Quotation.Statistics.TotalAskNum = Convert.ToInt32(SubMessage[23]);
 
             for (int i = 0, n = 26; i < 10; ++i, ++n)
             {
-                Quotation.BidPrice[i] = (float)Convert.ToDouble(SubMessage[n]);
-                Quotation.BidVolume[i] = Convert.ToInt32(SubMessage[n + 10]) / 100;
-                Quotation.AskPrice[i] = (float)Convert.ToDouble(SubMessage[n + 20]);
-                Quotation.AskVolume[i] = Convert.ToInt32(SubMessage[n + 30]) / 100;
+                Quotation.CrossQuotes.BidPrice[i] = (float)Convert.ToDouble(SubMessage[n]);
+                Quotation.CrossQuotes.BidVolume[i] = Convert.ToInt32(SubMessage[n + 10]) / 100;
+                Quotation.CrossQuotes.AskPrice[i] = (float)Convert.ToDouble(SubMessage[n + 20]);
+                Quotation.CrossQuotes.AskVolume[i] = Convert.ToInt32(SubMessage[n + 30]) / 100;
             }
 
             return true;

@@ -65,19 +65,27 @@ namespace Level2Quotes.Task
 
             if (mSymbols != null)
             {
+                List<Thread> SubTask = new List<Thread>();
+
                 int Index = 0;
                 while (Index < mSymbols.Count)
                 {
                     List<int> SubSymbols = mSymbols.GetRange(Index, Math.Min(mPerThreadCount, mSymbols.Count - Index));
                     Index += mPerThreadCount;
 
-                    DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockCapture(SubSymbols);
-                    mCapture.Add(Capture);
+                    Thread NewThread = new Thread(o =>
+                    {
+                        DataCapture.SinaStockSubscription Capture = DataCapture.StockQuotesManager.Instance().CreateSinaStockSubscription(SubSymbols);
+                        mCapture.Add(Capture);
 
-                    Capture.SetTerminationCondition(DataCapture.TerminationCondition.TC_MarketClosed);
-                    Capture.SetSubscriptionType(Level2DataType.Quotation);
-                    Capture.SetDataDelegation(null, this.QuotationDataProcessor, null);
-                    Capture.ConnectToSina();
+                        Capture.SetTerminationCondition(DataCapture.TerminationCondition.TC_MarketClosed);
+                        Capture.SetSubscriptionType(Level2DataType.Quotation);
+                        Capture.SetDataDelegation(null, this.QuotationDataProcessor, null);
+                        Capture.ConnectToSina();
+                    });
+                    NewThread.Start();
+
+                    SubTask.Add(NewThread);
                 }
 
                 ret = true;
@@ -91,17 +99,19 @@ namespace Level2Quotes.Task
                         RecordDataToDisk();
                     }
 
-                    bool AllCompleted = false;
+                    bool AllCompleted = true;
 
-                    foreach (var ele in mCapture)
+                    foreach (var ele in SubTask)
                     {
-                        AllCompleted |= ele.IsRunning();
+                        AllCompleted &= (ele.ThreadState == ThreadState.Stopped);
+
+                        ret &= (ele.ThreadState != ThreadState.Aborted);
                     }
 
-                    if (!AllCompleted)
+                    if (AllCompleted)
                         break;
 
-                    Thread.Sleep(10000);
+                    Thread.Sleep(1000);
                 }
             }
 
@@ -147,6 +157,8 @@ namespace Level2Quotes.Task
 
         private void RecordDataToDisk()
         {
+            Console.WriteLine("Write To Disk At Time: {0}", DateTime.Now.ToString("HH.mm.ss"));
+
             mLock.Lock();
 
             foreach(var ele in mDatas)

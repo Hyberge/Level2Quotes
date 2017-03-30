@@ -103,11 +103,11 @@ namespace Level2Quotes.DataCapture
             return mIntSymbols;
         }
 
-        public SinaStockSubscription CreateSinaStockCapture(List<int> Symbols = null)
+        public SinaStockSubscription CreateSinaStockSubscription(List<int> Symbols = null)
         {
             if (Symbols == null || Symbols.Count == 0)
             {
-            	return new SinaStockSubscription(GetAllIntSymbol(), mSina);
+                return new SinaStockSubscription(GetAllIntSymbol(), mSina);
             } 
             else
             {
@@ -127,7 +127,7 @@ namespace Level2Quotes.DataCapture
             }
         }
 
-        public StockDiskDataSimulation CreateStockDiskDataCapture(List<int> Symbols = null)
+        public StockDiskDataSimulation CreateStockDiskDataSimulation(List<int> Symbols = null)
         {
             if (Symbols == null || Symbols.Count == 0)
             {
