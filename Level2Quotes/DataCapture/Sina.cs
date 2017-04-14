@@ -209,7 +209,7 @@ namespace Level2Quotes.DataCapture
             {
                 String res;
 	            String Url = "http://stock.finance.sina.com.cn/stock/api/openapi.php/StockLevel2Service.getTransactionList?symbol=" +
-                    Symbol + "&callback=jQuery17209838373235483986_" + DateTime.Now.Ticks + "&pageNum=10000&page=" + Page + "&stime=09:25:00&etime=15:05:00&sign=&num=20&_=" + DateTime.Now.Ticks;
+                    Symbol + "&callback=jQuery17209838373235483986_" + DateTime.Now.Ticks + "&pageNum=10000&page=" + Page + "&stime=09:25:00&etime=15:05:00&sign=&num=0&_=" + DateTime.Now.Ticks;
 	            try
 	            {
 		            HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(new Uri(Url));
